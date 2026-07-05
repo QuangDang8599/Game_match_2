@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MathAdventure</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="start-screen scene" id="startScreen">
+        <div class="hero-card">
+          <div class="hero-copy">
+            <p class="eyebrow">MathAdventure • Phiên bản mới</p>
+            <h1>Chinh phục toán học qua từng câu đố</h1>
+            <p>Giải các phép tính vui vẻ, tích lũy điểm và tiến lên các level mới.</p>
+            <div class="hero-actions">
+              <button id="startBtn" class="primary-btn">Bắt đầu chơi</button>
+              <button id="openLoginBtn" class="secondary-btn">Đăng nhập</button>
+              <a href="level-select.html" class="secondary-btn">Chọn level</a>
+            </div>
+            <p id="userStatus" class="user-status">Vui lòng đăng nhập hoặc tạo tài khoản</p>
+          </div>
+          <div class="hero-visual">
+            <img src="assets/downloaded/minions/701e1941192f536f983b8c7c043432de.jpg" alt="Nhân vật mascot MathAdventure" />
+          </div>
+        </div>
+
+        <div id="adminPanel" class="admin-panel hidden">
+          <h3>Quản trị viên</h3>
+          <div class="admin-row">
+            <label class="admin-field">
+              <span>Thời gian mỗi câu</span>
+              <input id="adminTimeLimit" type="number" min="5" max="60" />
+            </label>
+            <label class="admin-field">
+              <span>Số câu qua level</span>
+              <input id="adminLevelGoal" type="number" min="1" max="10" />
+            </label>
+          </div>
+          <div class="admin-actions">
+            <button id="adminSaveSettingsBtn" class="secondary-btn">Lưu cài đặt</button>
+            <button id="adminUnlockBtn" class="secondary-btn">Mở khóa hết level</button>
+          </div>
+          <div class="admin-header">
+            <p>Chỉnh sửa câu hỏi hiện tại</p>
+            <input id="adminQuestionOverride" type="text" placeholder="Câu hỏi mới" />
+            <input id="adminAnswerOverride" type="text" placeholder="Đáp án đúng" />
+            <button id="adminApplyQuestionBtn" class="primary-btn">Áp dụng câu hỏi</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="modal-overlay hidden" id="loginModal">
+        <div class="modal-card">
+          <button id="closeLoginBtn" class="close-modal" aria-label="Đóng">×</button>
+          <h3>Đăng nhập hoặc tạo mới</h3>
+          <div class="login-row">
+            <input id="usernameInput" class="login-input" type="text" placeholder="Tên đăng nhập" />
+            <input id="passwordInput" class="login-input" type="password" placeholder="Mật khẩu" />
+          </div>
+          <div class="login-actions">
+            <button id="loginBtn" class="primary-btn">Đăng nhập / Tạo mới</button>
+            <span id="loginMessage" class="login-message">Admin mặc định: admin / admin</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="game-screen scene hidden" id="gameScreen">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">MathAdventure</p>
+            <h2>Trò chơi Toán Học</h2>
+          </div>
+          <button id="restartBtn" class="secondary-btn">Chơi lại</button>
+        </header>
+
+        <div class="stats">
+          <div class="stat-card"><img class="stat-icon" src="assets/icons/rocket.svg" alt="Icon level" /> Level <strong id="levelValue">1</strong></div>
+          <div class="stat-card"><img class="stat-icon" src="assets/icons/star.svg" alt="Icon điểm" /> Điểm <strong id="scoreValue">0</strong></div>
+          <div class="stat-card"><img class="stat-icon" src="assets/icons/star.svg" alt="Icon đúng" /> Đúng <strong id="correctValue">0/0</strong></div>
+          <div class="stat-card"><img class="stat-icon" src="assets/icons/rocket.svg" alt="Icon chuỗi" /> Chuỗi <strong id="streakValue">0</strong></div>
+        </div>
+
+        <div class="question-card">
+          <div class="companion-runner" id="companionRunner" aria-hidden="true">🐧</div>
+          <div class="question-top">
+            <p class="question-label">Câu hỏi</p>
+            <div class="companion-pill">
+              <span id="companionLabel">Đồng hành: Chim cánh cụt</span>
+            </div>
+            <div class="timer-pill">Thời gian: <strong id="timerValue">15s</strong></div>
+          </div>
+          <div class="progress-track">
+            <div id="progressBar" class="progress-bar"></div>
+          </div>
+          <h3 id="questionText">?</h3>
+          <div id="options" class="options"></div>
+          <p id="feedback" class="feedback">Chọn đáp án phù hợp.</p>
+          <div class="actions">
+            <button id="nextBtn" class="primary-btn" disabled>Câu tiếp theo</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Dog companion">
+  <rect width="120" height="120" rx="24" fill="#fff7ed"/>
+  <circle cx="60" cy="54" r="28" fill="#f5c27c"/>
+  <circle cx="50" cy="50" r="4" fill="#111827"/>
+  <circle cx="70" cy="50" r="4" fill="#111827"/>
+  <path d="M44 60c8 10 24 10 32 0" stroke="#8b5a2b" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M34 34c6-16 16-22 26-22 10 0 20 6 26 22" fill="#d97706"/>
+  <rect x="30" y="74" width="60" height="18" rx="9" fill="#f59e0b"/>
+  <path d="M30 40l-10 10" stroke="#d97706" stroke-width="6" stroke-linecap="round"/>
+  <path d="M90 40l10 10" stroke="#d97706" stroke-width="6" stroke-linecap="round"/>
+</svg>
