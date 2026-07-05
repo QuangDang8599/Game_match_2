@@ -1,0 +1,9 @@
+{
+  "name": "mathadventure-game",
+  "version": "1.0.0",
+  "private": true,
+  "description": "New math adventure game source for Game_math_2",
+  "scripts": {
+    "dev": "python -m http.server 8080"
+  }
+}

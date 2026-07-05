@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chọn Level - MathAdventure</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell level-shell">
+      <section class="level-screen scene" id="levelScreen">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">MathAdventure</p>
+            <h2>Chọn level</h2>
+          </div>
+          <button id="backBtn" class="secondary-btn">Quay lại</button>
+        </header>
+
+        <div class="level-list" id="levelList"></div>
+      </section>
+    </main>
+
+    <script>
+      const levelList = document.getElementById('levelList');
+      const backBtn = document.getElementById('backBtn');
+
+      function loadUsers() {
+        const rawUsers = localStorage.getItem('mathadventure-users');
+        return rawUsers ? JSON.parse(rawUsers) : {};
+      }
+
+      function getCurrentUsername() {
+        return localStorage.getItem('mathadventure-current-user');
+      }
+
+      function getCurrentUserProfile(users) {
+        const username = getCurrentUsername();
+        return username && users[username] ? users[username] : null;
+      }
+
+      function saveUsers(users) {
+        localStorage.setItem('mathadventure-users', JSON.stringify(users));
+      }
+
+      function setStartLevel(users, level) {
+        const username = getCurrentUsername();
+        if (!username || !users[username]) {
+          return;
+        }
+        users[username].startLevel = level;
+        saveUsers(users);
+      }
+
+      const users = loadUsers();
+      const currentUser = getCurrentUserProfile(users);
+
+      if (!currentUser) {
+        levelList.innerHTML = '<p class="level-note">Vui lòng đăng nhập từ trang chính để chọn level.</p>';
+        backBtn.addEventListener('click', () => window.location.href = 'index.html');
+      } else {
+        const totalLevels = 6;
+        const maxUnlocked = currentUser.isAdmin ? totalLevels : Math.max(1, currentUser.unlockedLevel || 1);
+
+        for (let i = 1; i <= totalLevels; i += 1) {
+          const card = document.createElement('div');
+          card.className = 'level-card';
+          const unlocked = i <= maxUnlocked;
+          card.innerHTML = `
+            <div class="level-info">
+              <h3>Level ${i}</h3>
+              <p>${unlocked ? 'Đã mở khóa' : 'Chưa mở khóa'}</p>
+            </div>
+            <button class="level-btn" ${unlocked ? '' : 'disabled'}>${unlocked ? 'Chơi' : 'Khóa'}</button>
+          `;
+
+          if (unlocked) {
+            const button = card.querySelector('.level-btn');
+            button.addEventListener('click', () => {
+              setStartLevel(users, i);
+              window.location.href = 'index.html';
+            });
+          }
+
+          levelList.appendChild(card);
+        }
+
+        backBtn.addEventListener('click', () => window.location.href = 'index.html');
+      }
+    </script>
+  </body>
+</html>
