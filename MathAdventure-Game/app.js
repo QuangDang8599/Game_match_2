@@ -2,6 +2,7 @@ const startScreen = document.getElementById('startScreen');
 const gameScreen = document.getElementById('gameScreen');
 const startBtn = document.getElementById('startBtn');
 const restartBtn = document.getElementById('restartBtn');
+const questionModeBtn = document.getElementById('questionModeBtn');
 const questionText = document.getElementById('questionText');
 const optionsEl = document.getElementById('options');
 const feedbackEl = document.getElementById('feedback');
@@ -13,8 +14,10 @@ const levelValue = document.getElementById('levelValue');
 const scoreValue = document.getElementById('scoreValue');
 const correctValue = document.getElementById('correctValue');
 const streakValue = document.getElementById('streakValue');
+const questionModeValue = document.getElementById('questionModeValue');
 const companionLabel = document.getElementById('companionLabel');
 const companionRunner = document.getElementById('companionRunner');
+const heroImage = document.getElementById('heroImage');
 const usernameInput = document.getElementById('usernameInput');
 const passwordInput = document.getElementById('passwordInput');
 const openLoginBtn = document.getElementById('openLoginBtn');
@@ -23,6 +26,12 @@ const loginModal = document.getElementById('loginModal');
 const loginBtn = document.getElementById('loginBtn');
 const loginMessage = document.getElementById('loginMessage');
 const userStatus = document.getElementById('userStatus');
+const openCollectionBtn = document.getElementById('openCollectionBtn');
+const closeCollectionBtn = document.getElementById('closeCollectionBtn');
+const collectionModal = document.getElementById('collectionModal');
+const collectionCount = document.getElementById('collectionCount');
+const collectionGrid = document.getElementById('collectionGrid');
+const clearCollectionBtn = document.getElementById('clearCollectionBtn');
 const adminPanel = document.getElementById('adminPanel');
 const adminTimeLimit = document.getElementById('adminTimeLimit');
 const adminLevelGoal = document.getElementById('adminLevelGoal');
@@ -31,6 +40,107 @@ const adminSaveSettingsBtn = document.getElementById('adminSaveSettingsBtn');
 const adminQuestionOverride = document.getElementById('adminQuestionOverride');
 const adminAnswerOverride = document.getElementById('adminAnswerOverride');
 const adminApplyQuestionBtn = document.getElementById('adminApplyQuestionBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const logoutBtnGame = document.getElementById('logoutBtnGame');
+const companionPopup = document.getElementById('companionPopup');
+const popupImage = document.getElementById('popupImage');
+const popupMessage = document.getElementById('popupMessage');
+let popupTimeoutId = null;
+
+// Minion image list and recent history to avoid immediate repeats
+let minionImageList = window.minionImageList || [];
+const RECENT_MINION_LIMIT = 10;
+let recentMinions = [];
+let lastChosenMinion = '';
+let lastRunnerMinion = '';
+let questionMode = localStorage.getItem('mathadventure-question-mode') || 'game';
+
+function getUserCollection() {
+  if (!currentUser) return [];
+  return Array.isArray(currentUser.collection) ? currentUser.collection : [];
+}
+
+function saveUserCollection() {
+  if (!currentUser) return;
+  if (!Array.isArray(currentUser.collection)) {
+    currentUser.collection = [];
+  }
+  saveUsers();
+}
+
+function addCollectedMinion(imageUrl) {
+  if (!currentUser || !imageUrl) return;
+  currentUser.collection = currentUser.collection || [];
+  if (!currentUser.collection.includes(imageUrl)) {
+    currentUser.collection.unshift(imageUrl);
+    saveUserCollection();
+  }
+}
+
+function clearCollectedMinions() {
+  if (!currentUser) return;
+  currentUser.collection = [];
+  saveUserCollection();
+}
+
+function renderCollectionGallery() {
+  const images = getUserCollection();
+  collectionCount.textContent = images.length;
+  if (!collectionGrid) return;
+  if (!images.length) {
+    collectionGrid.innerHTML = '<p class="empty-collection">Chưa có minion nào. Giải đúng câu hỏi để thu thập nhé!</p>';
+    return;
+  }
+  collectionGrid.innerHTML = images.map((url) => `
+      <div class="collection-item">
+        <img src="${url}" alt="Minion đã thu thập" />
+      </div>
+    `).join('');
+}
+
+function showCollectionModal() {
+  if (!currentUser) {
+    showLoginMessage('Đăng nhập để mở bộ sưu tập', true);
+    showLoginModal();
+    return;
+  }
+  renderCollectionGallery();
+  collectionModal.classList.remove('hidden');
+}
+
+function hideCollectionModal() {
+  if (!collectionModal) return;
+  collectionModal.classList.add('hidden');
+}
+
+function updateHeroImage() {
+  if (!heroImage) return;
+  const chosenImage = pickRandomMinionImage() || heroImage.src;
+  heroImage.src = chosenImage;
+  heroImage.alt = 'Nhân vật mascot MathAdventure';
+}
+
+function pickRandomMinionImage() {
+  if (!Array.isArray(minionImageList) || minionImageList.length === 0) {
+    return '';
+  }
+
+  // If list is smaller than or equal to RECENT_MINION_LIMIT, just shuffle and pick a random
+  const available = minionImageList.filter((p) => !recentMinions.includes(p));
+  let pick = '';
+  if (available.length === 0) {
+    // reset recent history preserving last one
+    recentMinions = recentMinions.slice(-1);
+    pick = minionImageList[Math.floor(Math.random() * minionImageList.length)];
+  } else {
+    pick = available[Math.floor(Math.random() * available.length)];
+  }
+
+  recentMinions.push(pick);
+  if (recentMinions.length > RECENT_MINION_LIMIT) recentMinions.shift();
+  lastChosenMinion = pick;
+  return pick;
+}
 
 let users = loadUsers();
 let currentUser = getCurrentUserProfile();
@@ -54,6 +164,31 @@ function loadUsers() {
 
 function saveUsers() {
   localStorage.setItem('mathadventure-users', JSON.stringify(users));
+}
+
+function getQuestionModeLabel() {
+  return questionMode === 'source' ? 'Tài liệu' : 'Game';
+}
+
+function updateQuestionModeUI() {
+  const label = getQuestionModeLabel();
+  if (questionModeBtn) {
+    questionModeBtn.textContent = `Nguồn: ${label}`;
+  }
+  if (questionModeValue) {
+    questionModeValue.textContent = label;
+  }
+}
+
+function setQuestionMode(mode) {
+  questionMode = mode === 'source' ? 'source' : 'game';
+  localStorage.setItem('mathadventure-question-mode', questionMode);
+  updateQuestionModeUI();
+}
+
+function toggleQuestionMode() {
+  setQuestionMode(questionMode === 'source' ? 'game' : 'source');
+  resetGame();
 }
 
 function getCurrentUsername() {
@@ -169,11 +304,60 @@ function initAuthentication() {
   if (currentUser) {
     updateUserStatus();
     enableStartButton();
+    // show logout, hide login
+    logoutBtn.classList.remove('hidden');
+    logoutBtnGame.classList.remove('hidden');
+    openLoginBtn.classList.add('hidden');
     showAdminPanel();
   } else {
     disableStartButton();
+    // hide logout, show login
+    logoutBtn.classList.add('hidden');
+    logoutBtnGame.classList.add('hidden');
+    openLoginBtn.classList.remove('hidden');
     adminPanel.classList.add('hidden');
   }
+}
+
+
+function logoutUser() {
+  clearTimer();
+  saveUserProgress();
+  localStorage.removeItem('mathadventure-current-user');
+  currentUser = null;
+  updateUserStatus();
+  initAuthentication();
+  hideLoginModal();
+  gameScreen.classList.add('hidden');
+  startScreen.classList.remove('hidden');
+  state.level = 1;
+  state.score = 0;
+  state.correct = 0;
+  state.total = 0;
+  state.streak = 0;
+  state.levelProgress = 0;
+  state.timeLeft = state.timeLimit;
+  renderStats();
+  showLoginMessage('Bạn đã đăng xuất', false);
+}
+
+function exitToStart() {
+  // Return to the start screen but keep the user logged in
+  clearTimer();
+  saveUserProgress();
+  hideLoginModal();
+  gameScreen.classList.add('hidden');
+  startScreen.classList.remove('hidden');
+  // preserve currentUser and its settings
+  state.timeLeft = state.timeLimit;
+  state.level = getStartLevel();
+  state.score = state.score || 0;
+  state.correct = state.correct || 0;
+  state.total = state.total || 0;
+  state.streak = state.streak || 0;
+  state.levelProgress = state.levelProgress || 0;
+  renderStats();
+  showLoginMessage('Trở về màn hình chính', false);
 }
 
 function getSavedUnlockedLevel() {
@@ -322,92 +506,52 @@ function buildOptions(answer) {
   return shuffle([...set]);
 }
 
-function generateQuestion(level) {
-  const topicRoll = Math.random();
-  let a = 0;
-  let b = 0;
-  let operator = '+';
-  let answer = 0;
-  let prompt = '';
-  let topic = 'Cộng trừ';
-
-  if (level === 1) {
-    if (topicRoll < 0.4) {
-      operator = '+';
-      a = randomInt(2, 12);
-      b = randomInt(1, 8);
-      answer = a + b;
-      topic = 'Cộng';
-      prompt = `${a} + ${b} = ?`;
-    } else if (topicRoll < 0.8) {
-      operator = '-';
-      a = randomInt(5, 15);
-      b = randomInt(1, 8);
-      if (a < b) {
-        [a, b] = [b, a];
-      }
-      answer = a - b;
-      topic = 'Trừ';
-      prompt = `${a} - ${b} = ?`;
-    } else {
-      a = randomInt(2, 10);
-      b = randomInt(2, 10);
-      answer = a + b;
-      topic = 'So sánh';
-      prompt = `${a} + ${b} = ?`;
-    }
-  } else if (level === 2) {
-    if (topicRoll < 0.35) {
-      operator = '+';
-      a = randomInt(10, 30);
-      b = randomInt(3, 18);
-      answer = a + b;
-      topic = 'Cộng lớn';
-      prompt = `${a} + ${b} = ?`;
-    } else if (topicRoll < 0.7) {
-      operator = '-';
-      a = randomInt(20, 50);
-      b = randomInt(5, 20);
-      answer = a - b;
-      topic = 'Trừ lớn';
-      prompt = `${a} - ${b} = ?`;
-    } else {
-      a = randomInt(2, 9);
-      b = randomInt(2, 9);
-      answer = a * b;
-      topic = 'Nhân';
-      prompt = `${a} × ${b} = ?`;
-    }
-  } else {
-    if (topicRoll < 0.4) {
-      a = randomInt(2, 8);
-      b = randomInt(2, 6);
-      answer = a * b;
-      topic = 'Nhân';
-      prompt = `${a} × ${b} = ?`;
-    } else if (topicRoll < 0.8) {
-      a = randomInt(2, 9) * randomInt(2, 4);
-      b = randomInt(2, 5);
-      answer = a / b;
-      if (!Number.isInteger(answer)) {
-        answer = Math.round(answer);
-      }
-      topic = 'Chia';
-      prompt = `${a} ÷ ${b} = ?`;
-    } else {
-      a = randomInt(1, 10);
-      b = randomInt(1, 10);
-      answer = a > b ? a : b;
-      topic = 'So sánh';
-      prompt = `Số lớn hơn giữa ${a} và ${b} là ?`;
-    }
+function getLevelBank(level) {
+  if (questionMode === 'source') {
+    return getSourceLevelBank(level);
   }
 
+  const banks = {
+    1: window.level1Questions || [],
+    2: window.level2Questions || [],
+    3: window.level3Questions || [],
+    4: window.level4Questions || [],
+    5: window.level5Questions || [],
+    6: window.level6Questions || []
+  };
+  return banks[level] || [];
+}
+
+function getSourceLevelBank(level) {
+  const sourceQuestions = window.sourceSimplePreviewQuestions || [];
+  const exact = sourceQuestions.filter((question) => Number(question.level) === Number(level));
+  if (exact.length) {
+    return exact;
+  }
+
+  const levels = [...new Set(sourceQuestions.map((question) => Number(question.level)).filter(Boolean))].sort((a, b) => a - b);
+  const fallbackLevel = levels.filter((candidate) => candidate <= Number(level)).pop() || levels[0];
+  return sourceQuestions.filter((question) => Number(question.level) === fallbackLevel);
+}
+
+function generateQuestion(level) {
+  const bank = getLevelBank(level);
+  if (!bank.length) {
+    return {
+      prompt: 'Câu hỏi sắp ra mắt',
+      answer: 0,
+      options: buildOptions(0),
+      topic: 'Đang cập nhật'
+    };
+  }
+
+  const index = randomInt(0, bank.length - 1);
+  const chosen = bank[index];
   return {
-    prompt,
-    answer,
-    options: buildOptions(answer),
-    topic
+    prompt: chosen.prompt,
+    answer: Number(chosen.answer),
+    options: buildOptions(Number(chosen.answer)),
+    topic: chosen.topic || 'Ôn tập'
   };
 }
 
@@ -473,6 +617,7 @@ function renderStats() {
   scoreValue.textContent = state.score;
   correctValue.textContent = `${state.correct}/${state.total}`;
   streakValue.textContent = `${state.streak} • ${state.levelProgress}/${state.levelGoal}`;
+  updateQuestionModeUI();
   const companion = getCompanion(state.level);
   companionLabel.textContent = `Đồng hành: ${companion.name}`;
 }
@@ -514,14 +659,20 @@ function renderQuestion() {
   const companion = getCompanion(state.level);
   companionRunner.innerHTML = '';
   const image = document.createElement('img');
-  image.src = companion.image;
-  image.alt = companion.name;
+  // choose a random minion image from the downloaded set (avoid recent repeats)
+  const chosenImage = pickRandomMinionImage() || companion.image;
+  lastRunnerMinion = chosenImage;
+  image.src = chosenImage;
+  image.alt = companion.name || 'Đồng hành';
   image.className = 'companion-image';
   image.style.background = 'transparent';
   companionRunner.appendChild(image);
+  // reset and start runner animation timed to the question time limit
   companionRunner.style.animation = 'none';
+  companionRunner.style.left = '-56px';
   void companionRunner.offsetWidth;
-  companionRunner.style.animation = 'runAcross 0.9s ease-out forwards';
+  companionRunner.style.animation = `runAcross ${state.timeLimit}s linear forwards`;
+  updateHeroImage();
 
   questionText.textContent = state.currentQuestion.prompt;
   state.currentQuestion.options.forEach((value) => {
@@ -565,6 +716,7 @@ function handleAnswer(selectedValue, isTimeout = false) {
     state.levelProgress = 0;
     feedbackEl.textContent = `⏰ Hết giờ! Đáp án đúng là ${correct}.`;
     feedbackEl.style.color = '#b91c1c';
+    showCompanionPopup('timeout', `⏰ Hết giờ! Đáp án đúng là ${correct}.`);
   } else if (Number(selectedValue) === correct) {
     playCorrectSound();
     state.correct += 1;
@@ -587,12 +739,15 @@ function handleAnswer(selectedValue, isTimeout = false) {
       feedbackEl.textContent = '🎉 Chính xác!';
     }
     feedbackEl.style.color = '#15803d';
+    addCollectedMinion(lastRunnerMinion);
+    showCompanionPopup('correct', feedbackEl.textContent);
   } else {
     playWrongSound();
     state.streak = 0;
     state.levelProgress = 0;
     feedbackEl.textContent = `😅 Sai rồi. Đáp án đúng là ${correct}.`;
     feedbackEl.style.color = '#b91c1c';
+    showCompanionPopup('wrong', feedbackEl.textContent);
   }
 
   if (state.score > state.bestScore) {
@@ -602,6 +757,33 @@ function handleAnswer(selectedValue, isTimeout = false) {
 
   renderStats();
   nextBtn.disabled = false;
+}
+
+function showCompanionPopup(type, message) {
+  if (!companionPopup) return;
+  const companion = getCompanion(state.level);
+  popupImage.src = lastRunnerMinion || companion.image || '';
+  popupImage.alt = companion.name || 'Đồng hành';
+  popupMessage.textContent = message || '';
+  companionPopup.classList.remove('hidden');
+  // clear any previous timeout
+  if (popupTimeoutId) {
+    clearTimeout(popupTimeoutId);
+    popupTimeoutId = null;
+  }
+  // auto-hide after 1.4s
+  popupTimeoutId = setTimeout(() => {
+    hideCompanionPopup();
+  }, 1400);
+}
+
+function hideCompanionPopup() {
+  if (!companionPopup) return;
+  companionPopup.classList.add('hidden');
+  if (popupTimeoutId) {
+    clearTimeout(popupTimeoutId);
+    popupTimeoutId = null;
+  }
 }
 
 function startGame() {
@@ -636,12 +818,28 @@ function resetGame() {
 
 startBtn.addEventListener('click', startGame);
 restartBtn.addEventListener('click', () => { playButtonSound(); resetGame(); });
-nextBtn.addEventListener('click', () => { playButtonSound(); nextQuestion(); });
+questionModeBtn.addEventListener('click', () => { playButtonSound(); toggleQuestionMode(); });
+nextBtn.addEventListener('click', () => { playButtonSound(); hideCompanionPopup(); nextQuestion(); });
 openLoginBtn.addEventListener('click', () => { playButtonSound(); showLoginModal(); });
+openCollectionBtn.addEventListener('click', () => { playButtonSound(); showCollectionModal(); });
+logoutBtn.addEventListener('click', () => { playButtonSound(); logoutUser(); });
+// Topbar button now exits to the start screen instead of logging out
+logoutBtnGame.addEventListener('click', () => { playButtonSound(); exitToStart(); });
 closeLoginBtn.addEventListener('click', () => { playButtonSound(); hideLoginModal(); });
+closeCollectionBtn.addEventListener('click', () => { playButtonSound(); hideCollectionModal(); });
+clearCollectionBtn.addEventListener('click', () => {
+  playButtonSound();
+  clearCollectedMinions();
+  renderCollectionGallery();
+});
 loginModal.addEventListener('click', (event) => {
   if (event.target === loginModal) {
     hideLoginModal();
+  }
+});
+collectionModal.addEventListener('click', (event) => {
+  if (event.target === collectionModal) {
+    hideCollectionModal();
   }
 });
 loginBtn.addEventListener('click', () => { playButtonSound(); handleLogin(); });
@@ -650,4 +848,5 @@ adminUnlockBtn.addEventListener('click', () => { playButtonSound(); unlockAllLev
 adminApplyQuestionBtn.addEventListener('click', () => { playButtonSound(); applyAdminQuestion(); });
 
 initAuthentication();
+updateQuestionModeUI();
 renderStats();

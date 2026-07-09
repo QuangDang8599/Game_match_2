@@ -16,13 +16,16 @@
             <p>Giải các phép tính vui vẻ, tích lũy điểm và tiến lên các level mới.</p>
             <div class="hero-actions">
               <button id="startBtn" class="primary-btn">Bắt đầu chơi</button>
+              <button id="questionModeBtn" class="secondary-btn" type="button">Nguồn: Game</button>
               <button id="openLoginBtn" class="secondary-btn">Đăng nhập</button>
+              <button id="logoutBtn" class="secondary-btn hidden">Đăng xuất</button>
+              <button id="openCollectionBtn" class="secondary-btn">Bộ sưu tập</button>
               <a href="level-select.html" class="secondary-btn">Chọn level</a>
             </div>
             <p id="userStatus" class="user-status">Vui lòng đăng nhập hoặc tạo tài khoản</p>
           </div>
           <div class="hero-visual">
-            <img src="assets/downloaded/minions/701e1941192f536f983b8c7c043432de.jpg" alt="Nhân vật mascot MathAdventure" />
+            <img id="heroImage" src="assets/downloaded/minions/701e1941192f536f983b8c7c043432de.jpg" alt="Nhân vật mascot MathAdventure" />
           </div>
         </div>
 
@@ -66,13 +69,28 @@
         </div>
       </section>
 
+      <section class="modal-overlay hidden" id="collectionModal">
+        <div class="modal-card">
+          <button id="closeCollectionBtn" class="close-modal" aria-label="Đóng">×</button>
+          <h3>Bộ sưu tập minion</h3>
+          <p class="collection-summary">Bạn đã thu thập <strong id="collectionCount">0</strong> minion.</p>
+          <div id="collectionGrid" class="collection-grid"></div>
+          <div class="collection-actions">
+            <button id="clearCollectionBtn" class="secondary-btn">Xóa bộ sưu tập</button>
+          </div>
+        </div>
+      </section>
+
       <section class="game-screen scene hidden" id="gameScreen">
         <header class="topbar">
           <div>
             <p class="eyebrow">MathAdventure</p>
             <h2>Trò chơi Toán Học</h2>
           </div>
-          <button id="restartBtn" class="secondary-btn">Chơi lại</button>
+            <div class="topbar-actions">
+            <button id="logoutBtnGame" class="secondary-btn hidden">Thoát</button>
+            <button id="restartBtn" class="secondary-btn">Chơi lại</button>
+          </div>
         </header>
 
         <div class="stats">
@@ -80,10 +98,10 @@
           <div class="stat-card"><img class="stat-icon" src="assets/icons/star.svg" alt="Icon điểm" /> Điểm <strong id="scoreValue">0</strong></div>
           <div class="stat-card"><img class="stat-icon" src="assets/icons/star.svg" alt="Icon đúng" /> Đúng <strong id="correctValue">0/0</strong></div>
           <div class="stat-card"><img class="stat-icon" src="assets/icons/rocket.svg" alt="Icon chuỗi" /> Chuỗi <strong id="streakValue">0</strong></div>
+          <div class="stat-card"><img class="stat-icon" src="assets/icons/star.svg" alt="Icon nguồn" /> Nguồn <strong id="questionModeValue">Game</strong></div>
         </div>
 
         <div class="question-card">
-          <div class="companion-runner" id="companionRunner" aria-hidden="true">🐧</div>
           <div class="question-top">
             <p class="question-label">Câu hỏi</p>
             <div class="companion-pill">
@@ -94,7 +112,14 @@
           <div class="progress-track">
             <div id="progressBar" class="progress-bar"></div>
           </div>
-          <h3 id="questionText">?</h3>
+          <div class="question-main">
+            <div class="companion-runner" id="companionRunner" aria-hidden="true">🐧</div>
+            <h3 id="questionText">?</h3>
+          </div>
+          <div id="companionPopup" class="companion-popup hidden" aria-live="polite">
+            <img id="popupImage" class="companion-popup-image" src="" alt="" />
+            <div id="popupMessage" class="companion-popup-message">Thông báo</div>
+          </div>
           <div id="options" class="options"></div>
           <p id="feedback" class="feedback">Chọn đáp án phù hợp.</p>
           <div class="actions">
@@ -104,6 +129,14 @@
       </section>
     </main>
 
+    <script src="question-data/level1.js"></script>
+    <script src="question-data/level2.js"></script>
+    <script src="question-data/level3.js"></script>
+    <script src="question-data/level4.js"></script>
+    <script src="question-data/level5.js"></script>
+    <script src="question-data/level6.js"></script>
+    <script src="question-data/source-simple-preview.js"></script>
+    <script src="question-data/minion-images.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

@@ -386,12 +386,9 @@ function generateQuestion(level) {
       topic = 'Nhân';
       prompt = `${a} × ${b} = ?`;
     } else if (topicRoll < 0.8) {
-      a = randomInt(2, 9) * randomInt(2, 4);
       b = randomInt(2, 5);
-      answer = a / b;
-      if (!Number.isInteger(answer)) {
-        answer = Math.round(answer);
-      }
+      answer = randomInt(2, 9);
+      a = b * answer;
       topic = 'Chia';
       prompt = `${a} ÷ ${b} = ?`;
     } else {
