@@ -167,7 +167,8 @@ function saveUsers() {
 }
 
 function getQuestionModeLabel() {
-  return questionMode === 'source' ? 'Tài liệu' : 'Game';
+  // return questionMode === 'source' ? 'Tài liệu' : 'Game';
+  return questionMode === 'source' ? 'Document';
 }
 
 function updateQuestionModeUI() {
@@ -507,9 +508,9 @@ function buildOptions(answer) {
 }
 
 function getLevelBank(level) {
-  if (questionMode === 'source') {
-    return getSourceLevelBank(level);
-  }
+  // if (questionMode === 'source') {
+  //   return getSourceLevelBank(level);
+  // }
 
   const banks = {
     1: window.level1Questions || [],
