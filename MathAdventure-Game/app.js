@@ -168,7 +168,7 @@ function saveUsers() {
 
 function getQuestionModeLabel() {
   // return questionMode === 'source' ? 'Tài liệu' : 'Game';
-  return 'Document';
+  return 'Tài liệu';
 }
 
 function updateQuestionModeUI() {
